@@ -6,15 +6,22 @@ import { Pokemon } from './entities/pokemon.entity';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PokemonService {
 
+    private defaultLimit: number;
+    private defaultOffset: number;
 
     constructor(
         @InjectModel(Pokemon.name)
-        private readonly pokemonModel: Model<Pokemon>
-    ) { }
+        private readonly pokemonModel: Model<Pokemon>,
+        private readonly configService: ConfigService,
+    ) {
+        this.defaultLimit = this.configService.get<number>('defaultLimit');
+        this.defaultOffset = this.configService.get<number>('defaultOffset');
+     }
 
 
     async create(createPokemonDto: CreatePokemonDto) {
@@ -28,13 +35,13 @@ export class PokemonService {
         }
     }
 
-    findAll( paginationDto: PaginationDto) {
-        const { limit = 10, offset = 0} = paginationDto;
+    findAll(paginationDto: PaginationDto) {
+        const { limit = this.defaultLimit, offset = this.defaultOffset } = paginationDto;
         return this.pokemonModel.find()
-        .skip(offset)
-        .limit(limit)
-        .sort({ no: 1 })
-        .select('-__v');
+            .skip(offset)
+            .limit(limit)
+            .sort({ no: 1 })
+            .select('-__v');
     }
 
     async findOne(term: string) {
@@ -73,11 +80,11 @@ export class PokemonService {
     }
 
     async remove(id: string) {
-        const { deletedCount, acknowledged } = await this.pokemonModel.deleteOne({_id: id});
-        if( deletedCount === 0 ){
+        const { deletedCount, acknowledged } = await this.pokemonModel.deleteOne({ _id: id });
+        if (deletedCount === 0) {
             throw new NotFoundException('Pokemon not found');
         }
-        if( !acknowledged ){
+        if (!acknowledged) {
             throw new InternalServerErrorException('Error deleting pokemon');
         }
         return true;

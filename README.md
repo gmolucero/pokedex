@@ -14,10 +14,17 @@ npm i -g @nestjs/cli
 ```
 npm i
 ```
+
 4. Levantar Base de datos de mongo de desarrollo
 ```
 docker-compose up -d
 ```
+
+5. Levantar proyecto en dev
+```
+npm run start:dev
+```
+
 
 ## Stack Utilizado
 * NestJs
